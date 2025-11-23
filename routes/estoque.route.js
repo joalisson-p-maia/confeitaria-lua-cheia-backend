@@ -22,14 +22,14 @@ router.get('/listar', async (req, res) => {
 
 router.post("/movimentacao", async (req, res) => {
   try {
-    const { insumoId, tipo, quantidade } = req.body;
+    const { nome, tipo, quantidade } = req.body;
 
-    const insumo = await Insumo.findById(insumoId);
+    const insumo = await Insumo.findOne({ $where: { nome } });
     if (!insumo) return res.status(404).json({ message: "Insumo não encontrado" });
 
-    if (tipo === "repor") {
+    if (tipo === "entrada") {
       insumo.quantidade += Number(quantidade);
-    } else if (tipo === "consumir") {
+    } else if (tipo === "saida") {
       insumo.quantidade -= Number(quantidade);
       if (insumo.quantidade < 0) insumo.quantidade = 0;
     } else {
