@@ -24,7 +24,7 @@ router.post("/movimentacao", async (req, res) => {
   try {
     const { nome, tipo, quantidade } = req.body;
 
-    const insumo = await Insumo.findOne({ $where: { nome } });
+    const insumo = await Insumo.findOne({ nome });
     if (!insumo) return res.status(404).json({ message: "Insumo não encontrado" });
 
     if (tipo === "entrada") {
