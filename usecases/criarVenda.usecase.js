@@ -4,7 +4,7 @@ const Insumo = require('../schemas/insumo.schema');
 const Venda = require('../schemas/venda.schema');
 const { calcularCustoEncomenda } = require('../utils/calcula.util');
 
-async function criarVenda({ itens, cliente = '' }) {
+async function criarVenda({ itens, cliente = '', dataVenda, total }) {
   const sessao = await mongoose.startSession();
   sessao.startTransaction();
   try {
@@ -12,7 +12,7 @@ async function criarVenda({ itens, cliente = '' }) {
       throw new Error('Itens da venda são obrigatórios');
     }
 
-    let total = 0;
+    let totalCalculado = 0;
     let custoTotal = 0;
     const vendaItems = [];
 
@@ -24,7 +24,7 @@ async function criarVenda({ itens, cliente = '' }) {
       if (quantidade <= 0) throw new Error('Quantidade deve ser maior que 0');
 
       //calcula preço e custo
-      total += encomenda.preco * quantidade;
+      totalCalculado += encomenda.preco * quantidade;
       const custoEncomenda = calcularCustoEncomenda(encomenda.insumosNecessarios, quantidade);
       custoTotal += custoEncomenda;
 
@@ -45,9 +45,10 @@ async function criarVenda({ itens, cliente = '' }) {
 
     const vendaDoc = new Venda({
       itens: vendaItems,
-      total,
+      total: totalCalculado,
       custoTotal,
-      cliente
+      cliente,
+      dataVenda: dataVenda || new Date(),
     });
 
     await vendaDoc.save({ sessao });
