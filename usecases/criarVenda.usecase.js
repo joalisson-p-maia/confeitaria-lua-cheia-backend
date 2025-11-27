@@ -5,7 +5,7 @@ const Venda = require('../schemas/venda.schema');
 const { calcularCustoEncomenda } = require('../utils/calcula.util');
 
 async function criarVenda({ itens, cliente = '' }) {
-  const sessao = await mongoose.startsessao();
+  const sessao = await mongoose.startSession();
   sessao.startTransaction();
   try {
     if (!Array.isArray(itens) || itens.length === 0) {
@@ -17,7 +17,7 @@ async function criarVenda({ itens, cliente = '' }) {
     const vendaItems = [];
 
     for (const it of itens) {
-      const encomenda = await Encomenda.findById(it.encomenda).populate('insumosNecessarios.insumo').sessao(sessao);
+      const encomenda = await Encomenda.findById(it.encomenda).populate('insumosNecessarios.insumo').session(sessao);
       if (!encomenda) throw new Error(`Encomenda não encontrada: ${it.encomenda}`);
 
       const quantidade = Number(it.quantidade);
@@ -31,7 +31,7 @@ async function criarVenda({ itens, cliente = '' }) {
       //verifica e decrementar insumos
       for (const reqInsumo of encomenda.insumosNecessarios) {
         const necessario = reqInsumo.quantidade * quantidade;
-        const insumoDoc = await Insumo.findById(reqInsumo.insumo._id).sessao(sessao);
+        const insumoDoc = await Insumo.findById(reqInsumo.insumo._id).session(sessao);
         if (!insumoDoc) throw new Error(`Insumo não encontrado: ${reqInsumo.insumo._id}`);
         if (insumoDoc.quantidade < necessario) {
           throw new Error(`Estoque insuficiente para insumo "${insumoDoc.nome}". necessário: ${necessario}, disponível: ${insumoDoc.quantidade}`);
@@ -53,12 +53,12 @@ async function criarVenda({ itens, cliente = '' }) {
     await vendaDoc.save({ sessao });
 
     await sessao.commitTransaction();
-    sessao.endsessao();
+    sessao.endSession();
 
     return await Venda.findById(vendaDoc._id).populate('itens.encomenda');
   } catch (err) {
     await sessao.abortTransaction();
-    sessao.endsessao();
+    sessao.endSession();
     throw err;
   }
 }
