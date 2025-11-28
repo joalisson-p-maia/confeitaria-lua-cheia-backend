@@ -6,9 +6,9 @@ const { handleError } = require('../utils/erro.util');
 const mongoose = require('mongoose');
 
 
-router.get('/:ano/:mes', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const { ano, mes } = req.params;
+    const { ano, mes } = req.query;
     const comeco = new Date(Number(ano), Number(mes) - 1, 1);
     const fim = new Date(Number(ano), Number(mes), 1);
 
@@ -62,7 +62,7 @@ router.get('/:ano/:mes', async (req, res) => {
           const usado = reqInsumo.quantidade * it.quantidade;
           const chave = String(reqInsumo.insumo._id);
           if (!insumoMap[chave]) {
-            insumoMap[key] = { 
+            insumoMap[chave] = { 
               nome: reqInsumo.insumo.nome, 
               quantidade: 0, 
               unidadeMedida: reqInsumo.insumo.unidadeMedida 
